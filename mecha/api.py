@@ -53,7 +53,7 @@ from beet.core.utils import (
 from pydantic.v1 import BaseModel, HttpUrl, validator
 from tokenstream import InvalidSyntax, Preprocessor, TokenStream, set_location
 
-from .ast import AstLiteral, AstNode, AstRoot
+from .ast import AstError, AstLiteral, AstNode, AstRoot
 from .config import CommandTree
 from .database import (
     CompilationDatabase,
@@ -68,7 +68,7 @@ from .diagnostic import (
     DiagnosticErrorSummary,
 )
 from .dispatch import Dispatcher, MutatingReducer, Reducer
-from .parse import delegate, get_parsers
+from .parse import InvalidSyntaxCollection, delegate, get_parsers
 from .preprocess import wrap_backslash_continuation
 from .serialize import FormattingOptions, Serializer
 from .spec import CommandSpec
@@ -386,13 +386,32 @@ class Mecha:
             preprocessor=preprocessor or self.preprocessor,
         )
 
+        diagnostics: list[Diagnostic] = []
+
         try:
-            with self.prepare_token_stream(stream, multiline=multiline):
-                with stream.provide(**provide or {}):
-                    ast = delegate(parser, stream)
+            ast = self.parse_stream(multiline, provide, parser, stream)
+            
+            errors: list[InvalidSyntax] = []
+            if isinstance(ast, AstRoot):
+                for child in ast.commands:
+                    if isinstance(child, AstError):
+                        errors.append(child.error)
+
+            if len(errors) >= 1:
+                raise InvalidSyntaxCollection(errors)
+                        
+        except InvalidSyntaxCollection as collection: 
+            for exc in collection.errors:
+                d = Diagnostic(
+                    level="error",
+                    message=str(exc),
+                    notes=exc.notes,
+                    hint=resource_location,
+                    filename=str(filename) if filename else None,
+                    file=source,
+                )
+                diagnostics.append(set_location(d, exc))
         except InvalidSyntax as exc:
-            if self.cache and filename and cache_miss:
-                self.cache.invalidate_changes(self.directory / filename)
             d = Diagnostic(
                 level="error",
                 message=str(exc),
@@ -401,7 +420,7 @@ class Mecha:
                 filename=str(filename) if filename else None,
                 file=source,
             )
-            raise DiagnosticError(DiagnosticCollection([set_location(d, exc)])) from exc
+            diagnostics.append(set_location(d, exc))
         else:
             if self.cache and filename and cache_miss:
                 try:
@@ -410,7 +429,21 @@ class Mecha:
                         logger.debug('Update cached ast for file "%s".', filename)
                 except Exception:
                     pass
+            print(ast)
             return ast
+        
+        if len(diagnostics) > 0:
+            if self.cache and filename and cache_miss:
+                self.cache.invalidate_changes(self.directory / filename)
+           
+            raise DiagnosticError(DiagnosticCollection(diagnostics))
+        
+
+    def parse_stream(self, multiline: bool|None, provide: JsonDict|None, parser: str, stream: TokenStream):
+        with self.prepare_token_stream(stream, multiline=multiline):
+            with stream.provide(**provide or {}):
+                ast = delegate(parser, stream)
+        return ast
 
     @overload
     def compile(

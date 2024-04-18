@@ -89,7 +89,14 @@ from uuid import UUID
 from beet import LATEST_MINECRAFT_VERSION
 from beet.core.utils import VersionNumber, split_version
 from nbtlib import Byte, Double, Float, Int, Long, OutOfRange, Short, String
-from tokenstream import InvalidSyntax, SourceLocation, TokenStream, set_location
+from tokenstream import (
+    InvalidSyntax,
+    SourceLocation,
+    TokenStream,
+    UnexpectedToken,
+    set_location,
+    Token,
+)
 
 from .ast import (
     AstAdvancementPredicate,
@@ -106,6 +113,7 @@ from .ast import (
     AstDustColorTransitionParticleParameters,
     AstDustParticleParameters,
     AstEntityAnchor,
+    AstError,
     AstFallingDustParticleParameters,
     AstGamemode,
     AstGreedy,
@@ -610,6 +618,13 @@ class UnrecognizedParser(MechaError):
         self.parser = parser
 
 
+class InvalidSyntaxCollection(MechaError):
+    errors: list[InvalidSyntax]
+
+    def __init__(self, errors: list[InvalidSyntax]):
+        self.errors = errors
+
+
 @overload
 def delegate(parser: str) -> Parser: ...
 
@@ -661,7 +676,8 @@ def parse_root(stream: TokenStream) -> AstRoot:
         node = AstRoot(commands=AstChildren[AstCommand]())
         return set_location(node, SourceLocation(0, 1, 1))
 
-    commands: List[AstCommand] = []
+    errors: List[InvalidSyntax] = []
+    commands: List[AstCommand|AstError] = []
 
     with stream.ignore("comment"):
         for _ in stream.peek_until():
@@ -669,7 +685,27 @@ def parse_root(stream: TokenStream) -> AstRoot:
                 continue
             if stream.get("eof"):
                 break
-            commands.append(delegate("root_item", stream))
+
+            with stream.checkpoint() as commit:
+                try:
+                    command = delegate("root_item", stream)
+                    commands.append(command)
+                    commit()
+                except InvalidSyntax as exc:
+                    errors.append(exc)
+
+            if commit.rollback:
+                next = stream.peek()
+                location = next.location if next else errors[-1].location
+                while next := stream.peek():
+                    stream.expect()
+                    if (
+                        next.location.pos >= errors[-1].location.pos
+                        and (next.type == "newline" or next.type == "eof")
+                    ):
+                        break
+                end_location = next.end_location if next else errors[-1].end_location
+                commands.append(AstError(location, end_location, errors[-1]))
 
     node = AstRoot(commands=AstChildren(commands))
     return set_location(node, start, stream.current)

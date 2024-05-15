@@ -708,7 +708,13 @@ def parse_root(stream: TokenStream) -> AstRoot:
                 commands.append(AstError(location, end_location, errors[-1]))
 
     node = AstRoot(commands=AstChildren(commands))
-    return set_location(node, start, stream.current)
+
+    if stream.index < 0:
+        end_location = SourceLocation(1, 0, 0)
+    else:
+        end_location = stream.current.end_location
+
+    return set_location(node, start, end_location)
 
 
 def parse_command(stream: TokenStream) -> AstCommand:

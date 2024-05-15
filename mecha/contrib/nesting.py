@@ -33,6 +33,7 @@ from mecha import (
     delegate,
     rule,
 )
+from mecha.ast import AstError
 from mecha.contrib.nested_location import NestedLocationResolver
 
 
@@ -179,6 +180,9 @@ class NestedCommandsTransformer(MutatingReducer):
 
         single_command = None
         for command in root.commands:
+            if isinstance(command, AstError):
+                continue
+
             if command.compile_hints.get("skip_execute_inline_single_command"):
                 continue
             if single_command is None:
@@ -273,6 +277,9 @@ class NestedCommandsTransformer(MutatingReducer):
         commands: List[AstCommand] = []
 
         for command in node.commands:
+            if isinstance(command, AstError):
+                continue
+
             if command.identifier in self.identifier_map:
                 result = yield from self.handle_function(command, top_level=True)
                 commands.extend(result)
@@ -294,6 +301,9 @@ class NestedCommandsTransformer(MutatingReducer):
             if expand:
                 changed = True
                 for nested_command in cast(AstRoot, expand.arguments[0]).commands:
+                    if isinstance(nested_command, AstError):
+                        continue
+                    
                     if nested_command.identifier == "execute:subcommand":
                         expansion = cast(AstCommand, nested_command.arguments[0])
                     else:

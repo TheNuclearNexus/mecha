@@ -8,6 +8,7 @@ __all__ = [
 
 
 from dataclasses import dataclass, replace
+import logging
 from pathlib import PurePosixPath
 from typing import Tuple
 
@@ -59,6 +60,7 @@ def resolve_using_database(
     path = database[current_file].resource_location
 
     if not path:
+        logging.error("Failed to resolve relative location")
         exc = InvalidSyntax(
             f"Can't resolve relative resource location {relative_path!r}."
         )

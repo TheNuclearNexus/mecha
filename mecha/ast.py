@@ -4,6 +4,7 @@ __all__ = [
     "AstNode",
     "AstChildren",
     "AstRoot",
+    "AstError",
     "AstCommand",
     "AstCommandSentinel",
     "AstString",

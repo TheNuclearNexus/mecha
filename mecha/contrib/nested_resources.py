@@ -42,6 +42,7 @@ from mecha import (
     delegate,
     rule,
 )
+from mecha.ast import AstError
 from mecha.contrib.json_files import (
     AstAppendJsonContent,
     AstJsonContent,
@@ -220,6 +221,9 @@ class NestedResourcesTransformer(MutatingReducer):
         commands: List[AstCommand] = []
 
         for command in node.commands:
+            if isinstance(command, AstError):
+                continue
+
             if file_type := self.nested_resource_identifiers.get(command.identifier):
                 name, content = command.arguments
 

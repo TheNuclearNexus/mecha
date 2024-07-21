@@ -263,7 +263,9 @@ class AstRoot(AstNode):
 @dataclass(frozen=True, slots=True)
 class AstError(AstNode):
     """Ast error node."""
+
     error: InvalidSyntax = required_field()
+
 
 @dataclass(frozen=True, slots=True)
 class AstCommand(AstNode):

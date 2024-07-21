@@ -678,7 +678,7 @@ def parse_root(stream: TokenStream) -> AstRoot:
         return set_location(node, SourceLocation(0, 1, 1))
 
     errors: List[InvalidSyntax] = []
-    commands: List[AstCommand|AstError] = []
+    commands: List[AstCommand | AstError] = []
 
     with stream.ignore("comment"):
         for _ in stream.peek_until():
@@ -697,12 +697,12 @@ def parse_root(stream: TokenStream) -> AstRoot:
         end_location = SourceLocation(1, 0, 0)
     else:
         end_location = stream.current.end_location
- 
 
     return set_location(node, start, end_location)
 
+
 def parse_root_item(stream: TokenStream, errors: list[InvalidSyntax]):
-    
+
     with stream.checkpoint() as commit:
         try:
             command: AstCommand = delegate("root_item", stream)
@@ -716,10 +716,9 @@ def parse_root_item(stream: TokenStream, errors: list[InvalidSyntax]):
         location = next.location if next else errors[-1].location
         while next := stream.peek():
             stream.expect()
-            if (
-                            next.location.pos >= errors[-1].location.pos
-                            and (next.type == "newline" or next.type == "eof")
-                        ):
+            if next.location.pos >= errors[-1].location.pos and (
+                next.type == "newline" or next.type == "eof"
+            ):
                 break
         end_location = next.end_location if next else errors[-1].end_location
         node = AstError(location, end_location, errors[-1])
@@ -1680,7 +1679,7 @@ class SelectorParser:
 
     def __call__(self, stream: TokenStream) -> AstSelector:
         with stream.syntax(
-            selector=r"@[praes]\[?",
+            selector=r"@[praesn]\[?",
             bracket=r"\[|\]",
             comma=r",",
         ):

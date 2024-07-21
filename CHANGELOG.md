@@ -2,6 +2,24 @@
 
 <!--next-version-placeholder-->
 
+## v0.94.2 (2024-05-13)
+
+### Fix
+
+* Add armor.body item slot ([`55ecece`](https://github.com/mcbeet/mecha/commit/55ecece1a601ac1bf9e27f868af8c012a4ca0dad))
+
+## v0.94.1 (2024-05-07)
+
+### Fix
+
+* Avoid truncation when serializing floats ([`c7d8570`](https://github.com/mcbeet/mecha/commit/c7d8570a629ac1225a3ee47ffe5efcf1d87729c5))
+
+## v0.94.0 (2024-04-28)
+
+### Feature
+
+* Version 1.20.5 ([`3d09de1`](https://github.com/mcbeet/mecha/commit/3d09de1ee6bfffc6efa6434bc85e0ff31dd6aed8))
+
 ## v0.93.1 (2024-04-11)
 
 ### Fix

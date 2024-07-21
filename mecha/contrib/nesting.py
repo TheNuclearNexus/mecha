@@ -35,6 +35,7 @@ from mecha import (
 )
 from mecha.ast import AstError
 from mecha.contrib.nested_location import NestedLocationResolver
+from mecha.parse import parse_root_item
 
 
 class NestingOptions(BaseModel):
@@ -82,8 +83,8 @@ def parse_nested_root(stream: TokenStream) -> AstRoot:
 
     level, command_level = stream.indentation[-2:]
 
-    commands: List[AstCommand] = []
-
+    errors: list[InvalidSyntax] = []
+    commands: List[AstCommand|AstError] = []
     with (
         stream.intercept("newline"),
         stream.provide(
@@ -92,7 +93,12 @@ def parse_nested_root(stream: TokenStream) -> AstRoot:
         ),
     ):
         while True:
-            commands.append(delegate("root_item", stream))
+            
+            with stream.syntax(colon=r":"):
+                result = parse_root_item(stream, errors)
+            
+            if result is not None:
+                commands.append(result)
 
             # The command parser consumes the trailing newline so we need to rewind
             # to be able to use "consume_line_continuation()".
@@ -102,7 +108,6 @@ def parse_nested_root(stream: TokenStream) -> AstRoot:
             with stream.provide(multiline=True, line_indentation=level):
                 if not consume_line_continuation(stream):
                     break
-
     node = AstRoot(commands=AstChildren(commands))
     return set_location(node, commands[0], commands[-1])
 

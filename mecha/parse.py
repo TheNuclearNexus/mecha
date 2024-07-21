@@ -668,6 +668,7 @@ def consume_line_continuation(stream: TokenStream) -> bool:
     return False
 
 
+# TODO: Attempt to move error recovery into AstCommand's parser
 def parse_root(stream: TokenStream) -> AstRoot:
     """Parse root."""
     start = stream.peek()
@@ -686,26 +687,9 @@ def parse_root(stream: TokenStream) -> AstRoot:
             if stream.get("eof"):
                 break
 
-            with stream.checkpoint() as commit:
-                try:
-                    command = delegate("root_item", stream)
-                    commands.append(command)
-                    commit()
-                except InvalidSyntax as exc:
-                    errors.append(exc)
-
-            if commit.rollback:
-                next = stream.peek()
-                location = next.location if next else errors[-1].location
-                while next := stream.peek():
-                    stream.expect()
-                    if (
-                        next.location.pos >= errors[-1].location.pos
-                        and (next.type == "newline" or next.type == "eof")
-                    ):
-                        break
-                end_location = next.end_location if next else errors[-1].end_location
-                commands.append(AstError(location, end_location, errors[-1]))
+            result = parse_root_item(stream, errors)
+            if result is not None:
+                commands.append(result)
 
     node = AstRoot(commands=AstChildren(commands))
 
@@ -713,8 +697,33 @@ def parse_root(stream: TokenStream) -> AstRoot:
         end_location = SourceLocation(1, 0, 0)
     else:
         end_location = stream.current.end_location
+ 
 
     return set_location(node, start, end_location)
+
+def parse_root_item(stream: TokenStream, errors: list[InvalidSyntax]):
+    
+    with stream.checkpoint() as commit:
+        try:
+            command: AstCommand = delegate("root_item", stream)
+            commit()
+            return command
+        except InvalidSyntax as exc:
+            errors.append(exc)
+
+    if commit.rollback:
+        next = stream.peek()
+        location = next.location if next else errors[-1].location
+        while next := stream.peek():
+            stream.expect()
+            if (
+                            next.location.pos >= errors[-1].location.pos
+                            and (next.type == "newline" or next.type == "eof")
+                        ):
+                break
+        end_location = next.end_location if next else errors[-1].end_location
+        node = AstError(location, end_location, errors[-1])
+        return node
 
 
 def parse_command(stream: TokenStream) -> AstCommand:

@@ -700,8 +700,22 @@ def parse_root(stream: TokenStream) -> AstRoot:
 
     return set_location(node, start, end_location)
 
+def consume_error(stream: TokenStream, errors: list[InvalidSyntax]):
+    next = stream.peek()
+    location = next.location if next else errors[-1].location
+    while next := stream.peek():
+        stream.expect()
+        if next.location.pos >= errors[-1].location.pos and (
+            next.type == "newline" or next.type == "eof"
+        ):
+            break
+    end_location = next.end_location if next else errors[-1].end_location
+    node = AstError(location, end_location, errors[-1])
+    return node
 
-def parse_root_item(stream: TokenStream, errors: list[InvalidSyntax]):
+
+
+def parse_root_item(stream: TokenStream, errors: list[InvalidSyntax], colon: bool = False):
 
     with stream.checkpoint() as commit:
         try:
@@ -712,19 +726,11 @@ def parse_root_item(stream: TokenStream, errors: list[InvalidSyntax]):
             errors.append(exc)
 
     if commit.rollback:
-        next = stream.peek()
-        location = next.location if next else errors[-1].location
-        while next := stream.peek():
-            stream.expect()
-            if next.location.pos >= errors[-1].location.pos and (
-                next.type == "newline" or next.type == "eof"
-            ):
-                break
-        end_location = next.end_location if next else errors[-1].end_location
-        node = AstError(location, end_location, errors[-1])
-        return node
-
-
+        if colon:
+            with stream.syntax(colon=r":"):
+                return consume_error(stream, errors)
+        return consume_error(stream, errors)
+        
 def parse_command(stream: TokenStream) -> AstCommand:
     """Parse command."""
     spec = get_stream_spec(stream)

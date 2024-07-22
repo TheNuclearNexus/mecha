@@ -94,8 +94,7 @@ def parse_nested_root(stream: TokenStream) -> AstRoot:
     ):
         while True:
             
-            with stream.syntax(colon=r":"):
-                result = parse_root_item(stream, errors)
+            result = parse_root_item(stream, errors, colon=True)
             
             if result is not None:
                 commands.append(result)

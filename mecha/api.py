@@ -389,18 +389,17 @@ class Mecha:
         diagnostics: list[Diagnostic] = []
 
         try:
-            ast = self.parse_stream(multiline, provide, parser, stream)
-            
+            ast: AstNode = self.parse_stream(multiline, provide, parser, stream)
+
             errors: list[InvalidSyntax] = []
-            if isinstance(ast, AstRoot):
-                for child in ast.commands:
-                    if isinstance(child, AstError):
-                        errors.append(child.error)
+            for node in ast.walk():
+                if isinstance(node, AstError):
+                    errors.append(node.error)
 
             if len(errors) >= 1:
                 raise InvalidSyntaxCollection(errors)
-                        
-        except InvalidSyntaxCollection as collection: 
+
+        except InvalidSyntaxCollection as collection:
             for exc in collection.errors:
                 d = Diagnostic(
                     level="error",
@@ -429,17 +428,21 @@ class Mecha:
                         logger.debug('Update cached ast for file "%s".', filename)
                 except Exception:
                     pass
-            print(ast)
             return ast
-        
+
         if len(diagnostics) > 0:
             if self.cache and filename and cache_miss:
                 self.cache.invalidate_changes(self.directory / filename)
-           
-            raise DiagnosticError(DiagnosticCollection(diagnostics))
-        
 
-    def parse_stream(self, multiline: bool|None, provide: JsonDict|None, parser: str, stream: TokenStream):
+            raise DiagnosticError(DiagnosticCollection(diagnostics))
+
+    def parse_stream(
+        self,
+        multiline: bool | None,
+        provide: JsonDict | None,
+        parser: str,
+        stream: TokenStream,
+    ):
         with self.prepare_token_stream(stream, multiline=multiline):
             with stream.provide(**provide or {}):
                 ast = delegate(parser, stream)

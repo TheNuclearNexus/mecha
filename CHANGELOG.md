@@ -2,6 +2,26 @@
 
 <!--next-version-placeholder-->
 
+## v0.95.2 (2024-07-26)
+
+### Fix
+
+* Schedule clear patch for 1.21 ([`79b9790`](https://github.com/mcbeet/mecha/commit/79b97906079b9b0897e4bf745bee186391426cb0))
+
+## v0.95.1 (2024-07-26)
+
+### Fix
+
+* Handle quoted yaml object keys ([`dea0a91`](https://github.com/mcbeet/mecha/commit/dea0a914d485434e87c604d73ac3b5bf07c834da))
+
+## v0.95.0 (2024-07-21)
+
+### Feature
+
+* Add n selector variable ([`40e9991`](https://github.com/mcbeet/mecha/commit/40e999186b5c45b8cd0ca39d82bc17e190caef55))
+* Support removed default component syntax ([`3b34357`](https://github.com/mcbeet/mecha/commit/3b3435798b15de8bd0f5fa3012569ca50d37bd7b))
+* Update beet ([`f300406`](https://github.com/mcbeet/mecha/commit/f3004062c671e973adaee0584286da5b341c3534))
+
 ## v0.94.2 (2024-05-13)
 
 ### Fix

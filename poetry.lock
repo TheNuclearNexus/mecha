@@ -28,13 +28,13 @@ testing = ["jaraco.test", "pytest (!=8.0.*)", "pytest (>=6,!=8.1.*)", "pytest-ch
 
 [[package]]
 name = "beet"
-version = "0.108.1"
+version = "0.108.5"
 description = "The Minecraft pack development kit"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "beet-0.108.1-py3-none-any.whl", hash = "sha256:e77c853beca704687c83aa893ff52ca4c2c4b53a722a219bbccddb98746b6575"},
-    {file = "beet-0.108.1.tar.gz", hash = "sha256:892c4534fcdd6d083f1e068307774aa78bd110bd13ae8d3858e649e7314463ea"},
+    {file = "beet-0.108.5-py3-none-any.whl", hash = "sha256:674cdf100120f28b1c685cad8c75c6a4707b25c7d62ba2b33f030769c5a9f816"},
+    {file = "beet-0.108.5.tar.gz", hash = "sha256:29d0f7538dbcf751a54c1019ef2437d24bbb57ea71da9969aac142a79efe301c"},
 ]
 
 [package.dependencies]
@@ -1598,4 +1598,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "fe7210db7bea08b05e2522602406eddc28ca2d9e1ad255da18403c496876ad7f"
+content-hash = "702f2040dd261be5e561547123bbe6e21581153691d223a03156c5405df820ba"

@@ -35,6 +35,7 @@ __all__ = [
     "BracketedListParser",
     "KeyValuePairParser",
     "ItemParser",
+    "RemovedDefaultItemComponentParser",
     "ItemPredicateAlternativesParser",
     "NoDataTagsConstraint",
     "BasicLiteralParser",
@@ -124,6 +125,7 @@ from .ast import (
     AstItemPredicateAlternatives,
     AstItemPredicateTestComponent,
     AstItemPredicateTestPredicate,
+    AstItemRemovedDefaultComponent,
     AstItemSlot,
     AstItemSlots,
     AstItemStack,
@@ -319,10 +321,17 @@ def get_default_parsers() -> Dict[str, Parser]:
             arguments_parser=AdjacentConstraint(
                 parser=MultilineParser(
                     BracketedListParser(
-                        KeyValuePairParser(
-                            node_type=AstItemComponent,
-                            key_parser=delegate("resource_location"),
-                            value_parser=delegate("nbt"),
+                        AlternativeParser(
+                            [
+                                RemovedDefaultItemComponentParser(
+                                    delegate("resource_location")
+                                ),
+                                KeyValuePairParser(
+                                    node_type=AstItemComponent,
+                                    key_parser=delegate("resource_location"),
+                                    value_parser=delegate("nbt"),
+                                ),
+                            ]
                         )
                     )
                 ),
@@ -1539,6 +1548,20 @@ class ItemParser:
 
 
 @dataclass
+class RemovedDefaultItemComponentParser:
+    """Parser for removed default item components."""
+
+    key_parser: Parser
+
+    def __call__(self, stream: TokenStream) -> AstItemRemovedDefaultComponent:
+        with stream.syntax(exclamation=r"!"):
+            token = stream.expect("exclamation")
+            key_node = self.key_parser(stream)
+        node = AstItemRemovedDefaultComponent(key=key_node)
+        return set_location(node, token, key_node)
+
+
+@dataclass
 class ItemPredicateAlternativesParser:
     """Parser for item predicate alternatives."""
 
@@ -1914,7 +1937,7 @@ class SelectorSingleConstraint:
         if not isinstance(node, AstSelector):
             return node
 
-        is_single = node.variable in "prs"
+        is_single = node.variable in "prsn"
 
         for arg in node.arguments:
             if arg.key.value == "limit":

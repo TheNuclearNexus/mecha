@@ -56,6 +56,7 @@ __all__ = [
     "AstBlockState",
     "AstBlock",
     "AstItemComponent",
+    "AstItemRemovedDefaultComponent",
     "AstItemStack",
     "AstItemPredicateTestComponent",
     "AstItemPredicateTestPredicate",
@@ -928,11 +929,20 @@ class AstItemComponent(AstNode):
 
 
 @dataclass(frozen=True, slots=True)
+class AstItemRemovedDefaultComponent(AstNode):
+    """Ast item removed default component node."""
+
+    key: AstResourceLocation = required_field()
+
+
+@dataclass(frozen=True, slots=True)
 class AstItemStack(AstNode):
     """Ast item stack node."""
 
     identifier: AstResourceLocation = required_field()
-    arguments: AstChildren[AstItemComponent] = AstChildren()
+    arguments: AstChildren[Union[AstItemComponent, AstItemRemovedDefaultComponent]] = (
+        AstChildren()
+    )
     data_tags: Optional[AstNbtCompound] = None  # legacy compat
 
 
@@ -1154,7 +1164,7 @@ class AstSelectorArgument(AstNode):
 class AstSelector(AstNode):
     """Ast selector node."""
 
-    variable: Literal["p", "r", "a", "e", "s"] = required_field()
+    variable: Literal["p", "r", "a", "e", "s", "n"] = required_field()
     arguments: AstChildren[AstSelectorArgument] = AstChildren()
 
     parser = "selector"

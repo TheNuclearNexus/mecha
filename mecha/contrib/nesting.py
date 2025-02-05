@@ -278,10 +278,11 @@ class NestedCommandsTransformer(MutatingReducer):
     @rule(AstRoot)
     def nesting(self, node: AstRoot):
         changed = False
-        commands: List[AstCommand] = []
+        commands: List[AstCommand|AstError] = []
 
         for command in node.commands:
             if isinstance(command, AstError):
+                commands.append(command)
                 continue
 
             if command.identifier in self.identifier_map:
@@ -306,6 +307,7 @@ class NestedCommandsTransformer(MutatingReducer):
                 changed = True
                 for nested_command in cast(AstRoot, expand.arguments[0]).commands:
                     if isinstance(nested_command, AstError):
+                        commands.append(nested_command)
                         continue
                     
                     if nested_command.identifier == "execute:subcommand":

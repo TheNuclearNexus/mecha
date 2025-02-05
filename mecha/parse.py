@@ -72,6 +72,7 @@ __all__ = [
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from functools import partial
+import logging
 from typing import (
     Any,
     Dict,
@@ -93,6 +94,7 @@ from nbtlib import Byte, Double, Float, Int, Long, OutOfRange, Short, String
 from tokenstream import (
     InvalidSyntax,
     SourceLocation,
+    SyntaxRules,
     TokenStream,
     UnexpectedToken,
     set_location,
@@ -700,7 +702,9 @@ def parse_root(stream: TokenStream) -> AstRoot:
             if result is not None:
                 commands.append(result)
 
-    node = AstRoot(commands=AstChildren(commands))
+    children = AstChildren(commands)
+
+    node = AstRoot(commands=children)
 
     if stream.index < 0:
         end_location = SourceLocation(1, 0, 0)
@@ -711,15 +715,12 @@ def parse_root(stream: TokenStream) -> AstRoot:
 
 def consume_error(stream: TokenStream, errors: list[InvalidSyntax]):
     next = stream.peek()
-    location = next.location if next else errors[-1].location
-    while next := stream.peek():
-        stream.expect()
-        if next.location.pos >= errors[-1].location.pos and (
-            next.type == "newline" or next.type == "eof"
-        ):
-            break
-    end_location = next.end_location if next else errors[-1].end_location
-    node = AstError(location, end_location, errors[-1])
+    with stream.syntax(unknown=r"."):
+        while next := stream.peek():
+            stream.expect()
+            if next.value == "\n":
+                break
+    node = AstError(errors[-1].location, errors[-1].end_location, errors[-1])
     return node
 
 

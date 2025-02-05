@@ -30,6 +30,7 @@ from mecha import (
     Reducer,
     rule,
 )
+from mecha.ast import AstError
 
 logger = logging.getLogger("stats")
 
@@ -97,6 +98,9 @@ class Analyzer(Reducer):
         self.stats.function_count += 1
 
         for command in node.commands:
+            if isinstance(command, AstError):
+                continue
+            
             behind_execute = False
 
             while command.identifier.startswith("execute"):

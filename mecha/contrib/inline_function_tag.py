@@ -26,6 +26,7 @@ from mecha import (
     Visitor,
     rule,
 )
+from mecha.ast import AstError
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +67,13 @@ class InlineFunctionTagHandler(Visitor):
     @rule(AstRoot)
     def inline_function_tag(self, node: AstRoot):
         changed = False
-        commands: List[AstCommand] = []
+        commands: List[AstCommand|AstError] = []
 
         for command in node.commands:
+            if isinstance(command, AstError):
+                commands.append(command)
+                continue
+
             if command.identifier == "function:tag:name" and isinstance(
                 tag := command.arguments[0], AstResourceLocation
             ):

@@ -18,6 +18,7 @@ from beet.core.utils import required_field
 from tokenstream import InvalidSyntax, TokenStream, set_location
 
 from mecha import (
+    AbstractNode,
     AlternativeParser,
     AstCommand,
     AstNode,
@@ -34,6 +35,7 @@ from mecha import (
 )
 from mecha.contrib.relative_location import resolve_relative_location
 
+import logging 
 
 def beet_default(ctx: Context):
     ctx.require(nested_location)
@@ -201,3 +203,4 @@ class NestedLocationTransformer(MutatingReducer):
             path=resolved,
         )
         return set_location(resource_location, node)
+    

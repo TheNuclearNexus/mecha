@@ -2,6 +2,24 @@
 
 <!--next-version-placeholder-->
 
+## v0.98.0 (2025-04-15)
+
+### Feature
+
+* 1.21.5 text component and SNBT changes ([#306](https://github.com/mcbeet/mecha/issues/306)) ([`6002605`](https://github.com/mcbeet/mecha/commit/60026053abc33e2f3e31d110d42121da1e06dfc9))
+
+## v0.97.1 (2025-03-27)
+
+### Fix
+
+* Support @n in message command argument ([#305](https://github.com/mcbeet/mecha/issues/305)) ([`e4aaa82`](https://github.com/mcbeet/mecha/commit/e4aaa820196ff640ab79b6fd25f4d19eb5ca6e52))
+
+## v0.97.0 (2025-03-26)
+
+### Feature
+
+* Add commands.json changes for 1.21.5 ([#304](https://github.com/mcbeet/mecha/issues/304)) ([`f37b310`](https://github.com/mcbeet/mecha/commit/f37b3106643f0133e3ead54371f946d40fec0b48))
+
 ## v0.96.0 (2024-12-12)
 
 ### Feature

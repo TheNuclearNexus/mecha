@@ -288,6 +288,10 @@ class NestedCommandsTransformer(MutatingReducer):
             if command.identifier in self.identifier_map:
                 result = yield from self.handle_function(command, top_level=True)
                 commands.extend(result)
+
+                if len(result) == 1 and result[0] is command:
+                    continue
+
                 changed = True
                 continue
 
@@ -337,7 +341,7 @@ class NestedCommandsTransformer(MutatingReducer):
         self,
         node: AstCommand,
         top_level: bool = False,
-    ) -> Generator[Diagnostic, None, List[AstCommand]]:
+    ) -> Generator[Diagnostic, None, List[AstCommand|AstError]]:
         name, *args, root = node.arguments
 
         if isinstance(name, AstResourceLocation) and isinstance(root, AstRoot):

@@ -28,6 +28,7 @@ __all__ = [
     "AstWildcard",
     "AstColor",
     "AstColorReset",
+    "AstHexColor",
     "AstSortOrder",
     "AstGamemode",
     "AstHeightmap",
@@ -572,6 +573,14 @@ class AstColorReset(AstOption):
 
 
 @dataclass(frozen=True, slots=True)
+class AstHexColor(AstLiteral):
+    """Ast color node."""
+
+    parser = "hex_color"
+    regex = re.compile(r"[0-9a-fA-F]{6}|[0-9a-fA-F]{3}")
+
+
+@dataclass(frozen=True, slots=True)
 class AstSortOrder(AstOption):
     """Ast sort order node."""
 
@@ -998,6 +1007,7 @@ class AstItemSlot(AstOption):
             "armor.head",
             "armor.legs",
             "contents",
+            "saddle",
             "weapon",
             "weapon.mainhand",
             "weapon.offhand",
